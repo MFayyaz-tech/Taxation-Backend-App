@@ -53,6 +53,10 @@ const userService = {
     return await userModel.findOne({ email: email, deleted: false });
   },
 
+  isExistAdmin: async () => {
+    return await userModel.findOne({ role: "admin" });
+  },
+
   resetPassword: async (_id, password) => {
     const salt = await bcrypt.genSalt(10);
     password = await bcrypt.hash(password, salt);
@@ -72,7 +76,7 @@ const userService = {
   },
 
   delete: async (_id) => {
-    return await userModel.findOneAndUpdate({ _id });
+    return await userModel.deleteOne({ _id });
   },
 };
 

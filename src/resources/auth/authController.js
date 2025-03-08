@@ -57,12 +57,12 @@ const authController = {
 
   // Signup route
   webSignup: expressAsyncHandler(async (req, res) => {
-    const exist = await userService.isExist(req.body.email);
+    const exist = await userService.isExistAdmin();
     if (exist) {
       return sendResponse(
         res,
         responseStatusCodes.BAD,
-        "User already exist",
+        "Admin already exist",
         false,
         null,
         null
@@ -168,7 +168,7 @@ const authController = {
         null
       );
     }
-    const user = await userService.Weblogin(email);
+    const user = await userService.getByEmail(email);
     if (user) {
       const validatePassword = await userService.validatePassword(
         password,

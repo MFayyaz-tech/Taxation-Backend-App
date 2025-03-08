@@ -10,6 +10,7 @@ require("./db/db");
 const sendResponse = require("./utils/sendResponse");
 const responseStatusCodes = require("./utils/responseStatusCode");
 const authRouter = require("./resources/auth/authRouter");
+const userRouter = require("./resources/user/userRouter");
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use((req, res, next) => {
 //app.use(authentication);
 //apis routes
 app.use("/api/auth", authRouter);
+app.use("/api/user", userRouter);
 
 // app.use("/api/submodule", submoduleRouter);
 

@@ -15,7 +15,15 @@ const chatServices = {
 
   newMessage: async (room, message, sender, receiver) => {
     const data = new chatModel({ room, sender, receiver, message });
-    return await data.save();
+    const result = await data.save();
+    if (result) {
+      return await chatModel
+        .findOne({ room })
+        .populate({ path: "sender", select: "name" })
+        .populate({ path: "receiver", select: "name" })
+        .lean();
+    }
+    return false;
   },
 
   acceptRequest: async (_id, user2) => {

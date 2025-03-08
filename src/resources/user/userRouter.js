@@ -6,7 +6,7 @@ const userRouter = express.Router();
 // Routes
 userRouter
   .route("/signup")
-  .post(validateRequest(userValidator.signup), controller.signup);
+  .post(validateRequest(userValidator.signup), controller.webSignup);
 userRouter
   .route("/login")
   .post(validateRequest(userValidator.login), controller.webLogin);
