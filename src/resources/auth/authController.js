@@ -3,7 +3,6 @@ const userService = require("../user/userService");
 const jwtServices = require("../../utils/jwtServices");
 const uuid4 = require("uuid4");
 const authServices = require("../../utils/authServices");
-const OTP = require("../../utils/OTP");
 //const sendMail = require("../../utils/sendMail");
 const sendResponse = require("../../utils/sendResponse");
 const responseStatusCodes = require("../../utils/responseStatusCode");
