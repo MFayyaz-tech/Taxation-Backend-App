@@ -1,0 +1,31 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main  # Change this to the branch you want to deploy from
+
+jobs:
+  deploy:
+    runs-on: self-hosted  # This ensures the job runs on your VPS
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js (if needed)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build the project (if applicable)
+        run: npm run build
+
+      - name: Restart application (PM2 example)
+        run: |
+          pm2 stop taxation-app || true  # Stop if already running
+          pm2 start npm --name taxation-app -- start
+          pm2 save
