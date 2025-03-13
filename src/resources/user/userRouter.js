@@ -2,6 +2,7 @@ const express = require("express");
 const controller = require("../auth/authController");
 const { validateRequest } = require("../../utils/validateRequest");
 const userValidator = require("./userValidator");
+const { authUser } = require("../../middleware/authentication.middleware");
 const userRouter = express.Router();
 // Routes
 userRouter
@@ -18,7 +19,7 @@ userRouter.post("/refreshToken", controller.refreshToken);
 userRouter
   .route("/:id")
   .get(controller.getOne)
-  .patch(controller.update)
+  .patch(authUser, validateRequest(userValidator.update), controller.update)
   .delete(controller.deleteUser);
 
 module.exports = userRouter;

@@ -9,5 +9,10 @@ const userValidator = {
     email: Joi.string().required(),
     password: Joi.string().required(),
   }),
+  update: Joi.object({
+    name: Joi.string().optional(),
+    phone: Joi.string().optional(),
+    country: Joi.string().optional(),
+  }),
 };
 module.exports = userValidator;
