@@ -2,9 +2,12 @@ const expressAsyncHandler = require("express-async-handler");
 const jwtServices = require("../utils/jwtServices");
 const responseStatusCodes = require("../utils/responseStatusCode");
 const sendResponse = require("../utils/sendResponse");
+const userService = require("../resources/user/userService");
+const jwt = require("jsonwebtoken");
+
 // Assuming you have defined a type or interface for encryptData
 
-const authentication = async (req, res, next) => {
+exports.authentication = async (req, res, next) => {
   if (
     req.url.startsWith("/api/test") ||
     req.url.endsWith("refreshToken") ||
@@ -87,9 +90,6 @@ const authentication = async (req, res, next) => {
     }
   }
 };
-
-module.exports = authentication;
-
 exports.authUser = expressAsyncHandler(async (req, res, next) => {
   try {
     // Get token from Authorization header and remove "Bearer"
@@ -109,7 +109,7 @@ exports.authUser = expressAsyncHandler(async (req, res, next) => {
     }
 
     // Verify token
-    jwt.verify(token, process.env.JWT_SECRET, async (error, decodedUser) => {
+    jwt.verify(token, process.env.JWTKEY, async (error, decodedUser) => {
       if (error) {
         return await sendResponse(
           res,
@@ -120,13 +120,13 @@ exports.authUser = expressAsyncHandler(async (req, res, next) => {
           error.message
         );
       }
+      console.log("decodedUser", decodedUser);
 
       // Find user by ID
-      const userData = await findUserById(decodedUser.id);
-      const adminUser = await adminUserServices.getOne(decodedUser.id);
+      const userData = await userService.getOne(decodedUser.userId);
 
       // Check if user or admin user exists
-      if (!userData && !adminUser) {
+      if (!userData) {
         return await sendResponse(
           res,
           responseStatusCodes.UNAUTHORIZED,
@@ -137,11 +137,11 @@ exports.authUser = expressAsyncHandler(async (req, res, next) => {
         );
       }
       // Check if the user's email is verified
-      if (userData && !userData.isVerified) {
+      if (userData && userData.status === "blocked") {
         return await sendResponse(
           res,
           responseStatusCodes.UNAUTHORIZED,
-          "Email not verified. Authentication Failed!",
+          "Account blocked. Authentication Failed!",
           false,
           null,
           null
@@ -149,7 +149,7 @@ exports.authUser = expressAsyncHandler(async (req, res, next) => {
       }
 
       // If authentication is successful, attach user to request and proceed
-      req.user = decodedUser;
+      req.user = userData;
       next();
     });
   } catch (error) {
@@ -184,7 +184,7 @@ exports.authAdmin = expressAsyncHandler(async (req, res, next) => {
     }
 
     // Verify token
-    jwt.verify(token, process.env.JWT_SECRET, async (error, decodedUser) => {
+    jwt.verify(token, process.env.JWTKEY, async (error, decodedUser) => {
       if (error) {
         return await sendResponse(
           res,
@@ -197,7 +197,7 @@ exports.authAdmin = expressAsyncHandler(async (req, res, next) => {
       }
 
       // Find user in adminUserServices by user ID
-      const userData = await adminUserServices.getOne(decodedUser?.id);
+      const userData = await userService.getOne(decodedUser?.userId);
       if (!userData) {
         return await sendResponse(
           res,
@@ -210,27 +210,11 @@ exports.authAdmin = expressAsyncHandler(async (req, res, next) => {
       }
 
       // Check if the user has a role
-      if (!userData?.role) {
+      if (userData?.role !== "admin") {
         return await sendResponse(
           res,
           responseStatusCodes.UNAUTHORIZED,
-          "Access Denied. No role is assigned to this user",
-          false,
-          null,
-          null
-        );
-      }
-
-      // Restrict permissions for certain API routes to super-admin only
-      if (
-        req.originalUrl.startsWith("/api/permission") &&
-        (req.method === "POST" || req.method === "DELETE") &&
-        userData?.role.role !== "super-admin"
-      ) {
-        return await sendResponse(
-          res,
-          responseStatusCodes.UNAUTHORIZED,
-          "Access Denied. Super admin only",
+          "Access Denied.",
           false,
           null,
           null
@@ -238,8 +222,7 @@ exports.authAdmin = expressAsyncHandler(async (req, res, next) => {
       }
 
       // Attach user and role to request object
-      req.user = decodedUser;
-      req.user.role = userData?.role.role;
+      req.user = userData;
       next();
     });
   } catch (error) {
