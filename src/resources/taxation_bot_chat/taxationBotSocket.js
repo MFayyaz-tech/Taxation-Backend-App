@@ -2,6 +2,7 @@ const { socketListener } = require("../../utils/socketListener");
 const taxationBotChatModel = require("./taxationBotChatModel");
 const axios = require("axios");
 const taxationKeyWordsModel = require("./taxationKeyWordsModel");
+const userService = require("../user/userService");
 
 const taxationBotSocket = async (socket, io) => {
   socket.on(socketListener.BOTCHAT, async (data, callback) => {
@@ -29,6 +30,11 @@ const taxationBotSocket = async (socket, io) => {
   socket.on(socketListener.SENDPROMPT, async (data, callback) => {
     try {
       const { user, request } = data;
+      const userDetails = await userService.getOne(user);
+      if (!userDetails) {
+        callback({ success: false, message: "User not found" });
+        return;
+      }
 
       // Check if required fields are missing
       if (!user || !request) {
@@ -48,13 +54,19 @@ const taxationBotSocket = async (socket, io) => {
         });
         return;
       }
+      let language = "English";
+      // let country = "Pakistan";
+      let promptSetting = `Answer the following taxation-related question in ${language} for ${userDetails?.country}: ${promptLower}.Ensure the response is in ${language} and includes relevant tax laws, regulations, and examples specific to ${userDetails?.country}.`;
+
+      promptSetting = promptSetting.toLowerCase();
+      console.log("promptSetting", promptSetting);
 
       // Prepare the options for the RapidAPI request
       const options = {
         method: "GET",
         url: "https://google-search72.p.rapidapi.com/search",
         params: {
-          q: promptLower,
+          q: promptSetting,
           lr: "en-US",
           num: "3",
         },
@@ -67,6 +79,7 @@ const taxationBotSocket = async (socket, io) => {
 
       // Perform the API request to get the search result
       const response = await axios.request(options);
+      console.log("response", response);
 
       // You can customize what data you want from the API response
       let apiData = response.data; // This is the data you get back from the Google search API
