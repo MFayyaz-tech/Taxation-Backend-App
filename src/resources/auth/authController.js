@@ -6,7 +6,7 @@ const authServices = require("../../utils/authServices");
 //const sendMail = require("../../utils/sendMail");
 const sendResponse = require("../../utils/sendResponse");
 const responseStatusCodes = require("../../utils/responseStatusCode");
-const { default: OTP } = require("../../utils/OTP");
+const OTP = require("../../utils/OTP");
 const authController = {
   // Signup route
   signup: expressAsyncHandler(async (req, res) => {
