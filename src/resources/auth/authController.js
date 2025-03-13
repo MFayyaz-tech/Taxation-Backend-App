@@ -6,7 +6,7 @@ const authServices = require("../../utils/authServices");
 //const sendMail = require("../../utils/sendMail");
 const sendResponse = require("../../utils/sendResponse");
 const responseStatusCodes = require("../../utils/responseStatusCode");
-const OTP = require("../../utils/OTP");
+const generateOtp = require("../../utils/generateOtp");
 const authController = {
   // Signup route
   signup: expressAsyncHandler(async (req, res) => {
@@ -307,7 +307,7 @@ const authController = {
 
   // Send OTP route
   sendOtp: expressAsyncHandler(async (req, res) => {
-    const value = OTP();
+    const value = generateOtp();
     const result = await userService.requestOtp(
       String(req.body.email),
       Number(value)
