@@ -3,11 +3,10 @@ const userService = require("../user/userService");
 const jwtServices = require("../../utils/jwtServices");
 const uuid4 = require("uuid4");
 const authServices = require("../../utils/authServices");
-const OTP = require("../../utils/OTP");
 //const sendMail = require("../../utils/sendMail");
 const sendResponse = require("../../utils/sendResponse");
 const responseStatusCodes = require("../../utils/responseStatusCode");
-const { default: otp } = require("../../utils/OTP");
+const { default: OTP } = require("../../utils/OTP");
 const authController = {
   // Signup route
   signup: expressAsyncHandler(async (req, res) => {
@@ -308,7 +307,7 @@ const authController = {
 
   // Send OTP route
   sendOtp: expressAsyncHandler(async (req, res) => {
-    const value = otp();
+    const value = OTP();
     const result = await userService.requestOtp(
       String(req.body.email),
       Number(value)
