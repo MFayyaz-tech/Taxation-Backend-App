@@ -21,11 +21,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build the project (if applicable)
-        run: npm run build
-
       - name: Restart application (PM2 example)
         run: |
           pm2 stop taxation-app || true  # Stop if already running
-          pm2 start npm --name taxation-app -- start
+          pm2 start src/server.js --name taxation-app
           pm2 save
