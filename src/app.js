@@ -11,6 +11,9 @@ const sendResponse = require("./utils/sendResponse");
 const responseStatusCodes = require("./utils/responseStatusCode");
 const authRouter = require("./resources/auth/authRouter");
 const userRouter = require("./resources/user/userRouter");
+const contactUsRouter = require("./resources/contact_us/contactUsRouter");
+const notificationRouter = require("./resources/notification/notificationRouter");
+const quizQuestionRouter = require("./resources/quiz_question/quizQuestionRouter");
 
 const app = express();
 
@@ -39,6 +42,9 @@ app.use((req, res, next) => {
 //apis routes
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
+app.use("/api/contactus", contactUsRouter);
+app.use("/api/notification", notificationRouter);
+app.use("/api/question", quizQuestionRouter);
 
 // app.use("/api/submodule", submoduleRouter);
 

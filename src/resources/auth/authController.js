@@ -175,6 +175,17 @@ const authController = {
       );
       if (validatePassword) {
         delete user.password;
+        const uuid = uuid4();
+        const refreshToken = await jwtServices.create({
+          uuid,
+          type: user.role,
+        });
+        const accessToken = await jwtServices.create(
+          { userId: user._id.toString(), type: user.role },
+          "30m"
+        );
+        authServices.add(user._id, String(uuid));
+        (user.accessToken = accessToken), (user.refreshToken = refreshToken);
         return sendResponse(
           res,
           responseStatusCodes.OK,

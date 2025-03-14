@@ -8,6 +8,12 @@ const quizQuestionSchema = new Schema(
       type: String,
       required: true,
     },
+    chapter: {
+      type: String,
+    },
+    topic: {
+      type: String,
+    },
     optionA: {
       type: String,
       required: true,
@@ -28,6 +34,10 @@ const quizQuestionSchema = new Schema(
       type: String,
       required: true,
       enum: ["A", "B", "C", "D"], // Restrict answer to A, B, C, or D
+    },
+    deleted: {
+      type: Boolean,
+      default: false,
     },
   },
   {
