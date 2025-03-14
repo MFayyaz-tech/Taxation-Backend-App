@@ -22,11 +22,11 @@ const userService = {
       .lean();
   },
 
-  requestOtp: async (email, otp) => {
+  requestOtp: async (email, otp, type) => {
     const otpExpiry = new Date(new Date().getTime() + 5 * 60 * 1000);
     return await userModel.findOneAndUpdate(
       { email },
-      { otp: 1111, otpExpiry: otpExpiry },
+      { otp: 1111, otpExpiry: otpExpiry, otp_type: type },
       { new: true }
     );
   },
@@ -44,7 +44,7 @@ const userService = {
   isValidOtp: async (otp, email) => {
     const result = await userModel.findOneAndUpdate(
       { email: email, otp: otp },
-      { otp: null }
+      { otp: null, otp_type: null }
     );
     return result;
   },

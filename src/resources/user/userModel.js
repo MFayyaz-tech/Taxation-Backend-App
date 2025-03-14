@@ -31,6 +31,15 @@ const userSchema = new mongoose.Schema(
     otpExpiry: {
       type: Date,
     },
+    email_verified: {
+      type: Boolean,
+      default: false,
+    },
+    otp_type: {
+      type: String,
+      enum: ["signup", "resetPassword", null],
+      default: null,
+    },
     deleted: {
       type: Boolean,
       default: false,

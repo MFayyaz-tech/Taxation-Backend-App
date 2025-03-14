@@ -7,11 +7,13 @@ const authServices = require("../../utils/authServices");
 const sendResponse = require("../../utils/sendResponse");
 const responseStatusCodes = require("../../utils/responseStatusCode");
 const generateOtp = require("../../utils/generateOtp");
+const bcrypt = require("bcrypt");
+
 const authController = {
   // Signup route
   signup: expressAsyncHandler(async (req, res) => {
     const exist = await userService.isExist(req.body.email);
-    if (exist) {
+    if (exist && exist?.email_verified) {
       return sendResponse(
         res,
         responseStatusCodes.BAD,
@@ -22,8 +24,21 @@ const authController = {
       );
     }
     req.body.role = "user";
-    const result = await userService.create(req.body);
-    if (result) {
+    const salt = await bcrypt.genSalt(10);
+    req.body.password = await bcrypt.hash(req.body.password, salt);
+    let user;
+    if (exist) {
+      user = await userService.update(exist?.id, req.body);
+    } else {
+      user = await userService.create(req.body);
+    }
+    if (user) {
+      const otp = generateOtp();
+      await userService.requestOtp(
+        String(req.body.email),
+        Number(otp),
+        "signup"
+      );
       // const uuid = uuid4();
       // const refreshToken = await jwtServices.create({
       //   uuid,
@@ -37,7 +52,7 @@ const authController = {
       return sendResponse(
         res,
         responseStatusCodes.CREATED,
-        "User registered successfully",
+        "Otp sent to your email. Please verify your email",
         true,
         null,
         null
@@ -68,6 +83,7 @@ const authController = {
       );
     }
     req.body.role = "admin";
+    req.body.email_verified = true;
     const result = await userService.create(req.body);
     if (result) {
       return sendResponse(
@@ -95,11 +111,11 @@ const authController = {
     const { email, password, fcmToken, country } = req.body;
     const user = await userService.getByEmail(email);
     if (user) {
-      if (user?.status === "blocked") {
+      if (user?.status === "blocked" || !user?.email_verified) {
         return sendResponse(
           res,
-          responseStatusCodes.BAD,
-          "Your account is blocked",
+          responseStatusCodes.UNAUTHORIZED,
+          "Your account is blocked or not verified",
           false,
           null,
           null
@@ -321,7 +337,8 @@ const authController = {
     const value = generateOtp();
     const result = await userService.requestOtp(
       String(req.body.email),
-      Number(value)
+      Number(value),
+      "resetPassword"
     );
     console.log("result", result);
     if (result) {
@@ -366,14 +383,30 @@ const authController = {
       String(req.body.email)
     );
     if (isValidOtp) {
-      return sendResponse(
-        res,
-        responseStatusCodes.OK,
-        "OTP Verified",
-        true,
-        null,
-        null
-      );
+      const user = await userService.getByEmail(req.body.email);
+      console.log("user", user);
+      if (user) {
+        if (user?.otp_type === "signup") {
+          await userService.update(user?._id, { email_verified: true });
+        }
+        return sendResponse(
+          res,
+          responseStatusCodes.OK,
+          "OTP Verified",
+          true,
+          null,
+          null
+        );
+      } else {
+        return sendResponse(
+          res,
+          responseStatusCodes.BAD,
+          "OTP invalid!",
+          false,
+          null,
+          null
+        );
+      }
     } else {
       return sendResponse(
         res,
