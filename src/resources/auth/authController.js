@@ -110,6 +110,7 @@ const authController = {
   login: expressAsyncHandler(async (req, res) => {
     const { email, password, fcmToken, country } = req.body;
     const user = await userService.getByEmail(email);
+    console.log("user", user);
     if (user) {
       if (user?.status === "blocked" || !user?.email_verified) {
         return sendResponse(
@@ -386,7 +387,7 @@ const authController = {
       const user = await userService.getByEmail(req.body.email);
       console.log("user", user);
       if (user) {
-        if (user?.otp_type === "signup") {
+        if (isValidateExpireOtp?.otp_type === "signup") {
           await userService.update(user?._id, { email_verified: true });
         }
         return sendResponse(
