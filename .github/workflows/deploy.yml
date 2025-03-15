@@ -1,0 +1,19 @@
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Start SSH Agent
+        run: |
+          eval $(ssh-agent -s)
+          ssh-add ~/.ssh/id_rsa
+
+      - name: Verify SSH Connection
+        run: ssh -T git@github.com
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Pull Latest Code
+        run: git pull origin main  # Change 'main' to your branch
