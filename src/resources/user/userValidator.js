@@ -13,6 +13,7 @@ const userValidator = {
     name: Joi.string().optional(),
     phone: Joi.string().optional(),
     country: Joi.string().optional(),
+    status: Joi.string().optional().valid("active", "blocked"),
   }),
 };
 module.exports = userValidator;

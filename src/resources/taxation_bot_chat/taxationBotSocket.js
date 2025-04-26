@@ -43,57 +43,69 @@ const taxationBotSocket = async (socket, io) => {
       }
       const promptLower = request.toLowerCase();
       console.log("promptLower", promptLower);
-      const matchedKeyword = await taxationKeyWordsModel.find({
-        $text: { $search: promptLower },
-      });
+      // const matchedKeyword = await taxationKeyWordsModel.find({
+      //   $text: { $search: promptLower },
+      // });
 
-      if (matchedKeyword.length === 0) {
-        callback({
-          success: false,
-          message: "Your query is not related to taxation.",
-        });
-        return;
-      }
-      let language = "English";
-      // let country = "Pakistan";
-      let promptSetting = `Answer the following taxation-related question in ${language} for ${userDetails?.country}: ${promptLower}.Ensure the response is in ${language} and includes relevant tax laws, regulations, and examples specific to ${userDetails?.country}.`;
+      // if (matchedKeyword.length === 0) {
+      //   callback({
+      //     success: false,
+      //     message: "Your query is not related to taxation.",
+      //   });
+      //   return;
+      // }
+      // let language = "English";
+      // // let country = "Pakistan";
+      // let promptSetting = `Answer the following taxation-related question in ${language} for ${userDetails?.country}: ${promptLower}.Ensure the response is in ${language} and includes relevant tax laws, regulations, and examples specific to ${userDetails?.country}.`;
 
-      promptSetting = promptSetting.toLowerCase();
-      console.log("promptSetting", promptSetting);
+      // promptSetting = promptSetting.toLowerCase();
+      // console.log("promptSetting", promptSetting);
 
-      // Prepare the options for the RapidAPI request
-      const options = {
-        method: "GET",
-        url: "https://google-search72.p.rapidapi.com/search",
-        params: {
-          q: promptSetting,
-          lr: "en-US",
-          num: "3",
-        },
-        headers: {
-          "x-rapidapi-key": process.env.RAPID_API_KEY,
-          "x-rapidapi-host": "google-search72.p.rapidapi.com",
-          "Content-Type": "application/json",
-        },
-      };
+      // // Prepare the options for the RapidAPI request
+      // const options = {
+      //   method: "GET",
+      //   url: "https://google-search72.p.rapidapi.com/search",
+      //   params: {
+      //     q: promptSetting,
+      //     lr: "en-US",
+      //     num: "3",
+      //   },
+      //   headers: {
+      //     "x-rapidapi-key": process.env.RAPID_API_KEY,
+      //     "x-rapidapi-host": "google-search72.p.rapidapi.com",
+      //     "Content-Type": "application/json",
+      //   },
+      // };
 
-      // Perform the API request to get the search result
-      const response = await axios.request(options);
+      // // Perform the API request to get the search result
+      // const response = await axios.request(options);
+      const response = await axios.post(
+        `http://82.25.105.2:8000/taxationbot`,
+        null,
+        {
+          params: {
+            user_id: userDetails?._id,
+            message: promptLower,
+            country: userDetails?.country,
+          },
+        }
+      );
       console.log("response", response);
 
       // You can customize what data you want from the API response
-      let apiData = response.data; // This is the data you get back from the Google search API
-      if (apiData?.status === "success") {
-        const response = apiData.items.map((item) => item.snippet).join("");
+      //let apiData = response.data; // This is the data you get back from the Google search API
+      if (response?.status === 200) {
+        // const response = apiData.items.map((item) => item.snippet).join("");
 
-        // Collect all links into a separate string for `reference`
-        const reference = apiData.items.map((item) => item.link).join(", ");
+        // // Collect all links into a separate string for `reference`
+        const reference = "";
+        // apiData.items.map((item) => item.link).join(", ");
         // Prepare message payload for the chat
         const msgPayload = {
           user: user, // Replace with the user who sent the message
           request: request,
-          response: response, // Use API data in the message
-          refrence: reference,
+          response: response.data?.response, // Use API data in the message
+          refrence: response?.data?.reference || "",
         };
 
         // Create a new message in the chat system

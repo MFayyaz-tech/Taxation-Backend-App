@@ -10,10 +10,11 @@ const notificationService = {
 
   //* Get all notifications
   getAll: async (user, type, page = 1, limit = 10) => {
-    let query = { user, deleted: false };
+    let query = { user };
     if (type) {
       query.type = type;
     }
+    console.log("query", query);
     const data = await Notification.find(query)
       .sort({ createdDate: -1 })
       .skip((page - 1) * limit)

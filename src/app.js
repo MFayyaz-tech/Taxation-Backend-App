@@ -14,7 +14,11 @@ const userRouter = require("./resources/user/userRouter");
 const contactUsRouter = require("./resources/contact_us/contactUsRouter");
 const notificationRouter = require("./resources/notification/notificationRouter");
 const quizQuestionRouter = require("./resources/quiz_question/quizQuestionRouter");
+const userQuizAttempRouter = require("./resources/user_quiz_attempt/userQuizAttempRouter");
+const taxationBotChatRouter = require("./resources/taxation_bot_chat/taxationBotChatRouter");
+const chatRouter = require("./resources/chat/chatRouter");
 
+require("./utils/firebase_service");
 const app = express();
 
 const corsOptions = {
@@ -45,6 +49,9 @@ app.use("/api/user", userRouter);
 app.use("/api/contactus", contactUsRouter);
 app.use("/api/notification", notificationRouter);
 app.use("/api/question", quizQuestionRouter);
+app.use("/api/attempt", userQuizAttempRouter);
+app.use("/api/taxation-bot", taxationBotChatRouter);
+app.use("/api/chat", chatRouter);
 
 // app.use("/api/submodule", submoduleRouter);
 

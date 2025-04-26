@@ -120,7 +120,6 @@ exports.authUser = expressAsyncHandler(async (req, res, next) => {
           error.message
         );
       }
-      console.log("decodedUser", decodedUser);
 
       // Find user by ID
       const userData = await userService.getOne(decodedUser.userId);

@@ -8,6 +8,9 @@ const sendResponse = require("../../utils/sendResponse");
 const responseStatusCodes = require("../../utils/responseStatusCode");
 const generateOtp = require("../../utils/generateOtp");
 const bcrypt = require("bcrypt");
+const chatServices = require("../chat/chatService");
+const sendEail = require("../../utils/sendEmail");
+const sendEmail = require("../../utils/sendEmail");
 
 const authController = {
   // Signup route
@@ -24,16 +27,17 @@ const authController = {
       );
     }
     req.body.role = "user";
-    const salt = await bcrypt.genSalt(10);
-    req.body.password = await bcrypt.hash(req.body.password, salt);
     let user;
     if (exist) {
+      const salt = await bcrypt.genSalt(10);
+      req.body.password = await bcrypt.hash(req.body.password, salt);
       user = await userService.update(exist?.id, req.body);
     } else {
       user = await userService.create(req.body);
     }
     if (user) {
       const otp = generateOtp();
+      await sendEmail(req.body.email, `Your TAX Wakeel signup otp is ${otp}`);
       await userService.requestOtp(
         String(req.body.email),
         Number(otp),
@@ -67,6 +71,43 @@ const authController = {
         null
       );
     }
+  }),
+
+  dashboard: expressAsyncHandler(async (req, res) => {
+    const [userCounts, chatCount] = await Promise.all([
+      await userService.getCount(),
+      await chatServices.chatCount(),
+    ]);
+    let response = {
+      total: userCounts[0]?.count + userCounts[1]?.count,
+      blocked: userCounts
+        ?.filter((item) => item._id === "blocked")
+        .reduce((acc, item) => acc + item.count, 0),
+      chats: chatCount,
+      subscriber: 13,
+    };
+
+    return sendResponse(
+      res,
+      responseStatusCodes.OK,
+      "States",
+      true,
+      response,
+      null
+    );
+  }),
+
+  getUserStatusByMonth: expressAsyncHandler(async (req, res) => {
+    const states = await userService.getUserStatusByMonth(req.query.year);
+
+    return sendResponse(
+      res,
+      responseStatusCodes.OK,
+      "States",
+      true,
+      states,
+      null
+    );
   }),
 
   // Signup route
@@ -108,7 +149,7 @@ const authController = {
 
   // Login route
   login: expressAsyncHandler(async (req, res) => {
-    const { email, password, fcmToken, country } = req.body;
+    const { email, password, fcmToken, country, device_id } = req.body;
     const user = await userService.getByEmail(email);
     console.log("user", user);
     if (user) {
@@ -127,7 +168,19 @@ const authController = {
         user.password
       );
       if (validatePassword) {
-        let updatedUser = await userService.updateFcm(email, fcmToken, country);
+        if (user?.is_login && device_id !== user?.device_id) {
+          const io = req.app.get("io");
+          io.to(user?._id.toString()).emit(
+            "login_alert",
+            JSON.stringify({ device_id: device_id })
+          );
+        }
+        let updatedUser = await userService.updateFcm(
+          email,
+          fcmToken,
+          country,
+          device_id
+        );
         delete updatedUser.password;
         const uuid = uuid4();
         const refreshToken = await jwtServices.create({
@@ -236,23 +289,16 @@ const authController = {
   // Get all users route
   getAll: expressAsyncHandler(async (req, res) => {
     const users = await userService.getAll(
-      req.query.role,
       req.query.page,
-      req.query.recordsPerPage,
-      req.query.isExecutive,
+      req.query.limt,
       req.query.search
-    );
-    const count = await userService.countDocumment(
-      req.query.role,
-      req.query.search,
-      req.query.isExecutive
     );
     return sendResponse(
       res,
       responseStatusCodes.OK,
       "Users",
       true,
-      { users, count },
+      users,
       null
     );
   }),
@@ -309,10 +355,38 @@ const authController = {
     }
   }),
 
+  // Update user logout
+  logout: expressAsyncHandler(async (req, res) => {
+    const result = await userService.update(
+      req.user.id,
+      { is_login: false },
+      req
+    );
+    if (result) {
+      return sendResponse(
+        res,
+        responseStatusCodes.OK,
+        "Logout",
+        true,
+        result,
+        null
+      );
+    } else {
+      return sendResponse(
+        res,
+        responseStatusCodes.BAD,
+        "Failed to update",
+        false,
+        result,
+        null
+      );
+    }
+  }),
+
   // Delete user route
   deleteUser: expressAsyncHandler(async (req, res) => {
-    const result = await userService.delete(String(req.params.id));
-    if (result.affected) {
+    const result = await userService.delete(req.params.id);
+    if (result) {
       return sendResponse(
         res,
         responseStatusCodes.OK,
@@ -343,7 +417,7 @@ const authController = {
     );
     console.log("result", result);
     if (result) {
-      // await sendMail(req.body.email, otp);
+      await sendEail(req.body.email, `Your TAX Wakeel otp is ${value}`);
       return sendResponse(
         res,
         responseStatusCodes.OK,

@@ -44,6 +44,13 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    device_id: {
+      type: String,
+    },
+    is_login: {
+      type: Boolean,
+      default: false,
+    },
     status: {
       type: String,
       default: "active",

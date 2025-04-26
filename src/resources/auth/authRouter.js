@@ -8,6 +8,7 @@ const authRouter = express.Router();
 authRouter
   .route("/signup")
   .post(validateRequest(authValidator.signup), controller.signup);
+authRouter.route("/logout").post(authUser, controller.logout);
 authRouter
   .route("/login")
   .post(validateRequest(authValidator.login), controller.login);

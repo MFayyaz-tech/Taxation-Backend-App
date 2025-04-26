@@ -35,6 +35,9 @@ const quizQuestionSchema = new Schema(
       required: true,
       enum: ["A", "B", "C", "D"], // Restrict answer to A, B, C, or D
     },
+    country: {
+      type: String,
+    },
     deleted: {
       type: Boolean,
       default: false,

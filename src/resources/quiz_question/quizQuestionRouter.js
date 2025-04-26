@@ -5,6 +5,8 @@ const {
   getAll,
   getOne,
   deleteQuiz,
+  getQuiz,
+  getTopics,
 } = require("./quizQuestionController");
 const { validateRequest } = require("../../utils/validateRequest");
 const quizQuestionValidator = require("./quizQuestionValidator");
@@ -21,6 +23,10 @@ quizQuestionRouter.post(
   create
 );
 quizQuestionRouter.get("/", authUser, getAll);
+quizQuestionRouter.get("/topic", authUser, getTopics);
+
+quizQuestionRouter.get("/quiz", authUser, getQuiz);
+
 quizQuestionRouter.get("/:id", authUser, getOne);
 quizQuestionRouter.patch(
   "/:id",

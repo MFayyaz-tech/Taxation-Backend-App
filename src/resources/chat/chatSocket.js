@@ -2,6 +2,7 @@ const chatServices = require("./chatService");
 const { generateRoomId } = require("../../utils/generateRoomId");
 const { socketListener } = require("../../utils/socketListener");
 const userService = require("../user/userService");
+const sendPushNotification = require("../../utils/firebase_service");
 
 module.exports = (socket, io) => {
   socket.on("test", async (data, callback) => {
@@ -32,11 +33,12 @@ module.exports = (socket, io) => {
       if (room) {
         const chats = await chatServices.roomChats(room);
         socket.join(room);
-        callback({
-          success: true,
-          message: "Chat",
-        });
         io.to(room).emit(socketListener.PREVIOUSCHAT, JSON.stringify(chats));
+        callback({
+          message: "Chat created",
+          success: true,
+          data: chats,
+        });
       } else {
         socket.emit(
           socketListener.ERROR,
@@ -62,6 +64,7 @@ module.exports = (socket, io) => {
         receiver = receiver?._id.toString();
       }
       console.log("receiver", receiver);
+      const receiverDetails = await userService.getOne(receiver);
       const room = generateRoomId(sender, receiver);
       const newMessage = await chatServices.newMessage(
         room,
@@ -71,6 +74,14 @@ module.exports = (socket, io) => {
       );
       if (newMessage) {
         io.to(room).emit(socketListener.NEWMESSAGE, JSON.stringify(newMessage));
+        if (receiverDetails?.fcmToken && newMessage?._id) {
+          await sendPushNotification(
+            receiverDetails.fcmToken,
+            "New Message",
+            "You have received a new message",
+            { sender: sender.toString(), receiver: receiver.toString() }
+          );
+        }
       } else {
         socket.emit(
           socketListener.ERROR,

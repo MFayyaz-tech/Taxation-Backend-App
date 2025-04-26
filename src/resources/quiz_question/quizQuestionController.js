@@ -31,6 +31,36 @@ const getAll = asyncHandler(async (req, res) => {
     null
   );
 });
+const getTopics = asyncHandler(async (req, res) => {
+  const quizQuestions = await quizQuestionService.getTopics(
+    req.query.user,
+    Number(req.query.page),
+    Number(req.query.limit)
+  );
+  return sendResponse(
+    res,
+    responseStatusCodes.OK,
+    "Questions retrieved",
+    true,
+    quizQuestions,
+    null
+  );
+});
+
+const getQuiz = asyncHandler(async (req, res) => {
+  const quizQuestions = await quizQuestionService.getQuiz(
+    req.user.id,
+    req.query.topic
+  );
+  return sendResponse(
+    res,
+    responseStatusCodes.OK,
+    "Questions retrieved",
+    true,
+    quizQuestions,
+    null
+  );
+});
 
 const getOne = asyncHandler(async (req, res) => {
   const quiz = await quizQuestionService.getOne(req.params.id);
@@ -78,4 +108,12 @@ const deleteQuiz = asyncHandler(async (req, res) => {
   );
 });
 
-module.exports = { create, getAll, getOne, update, deleteQuiz };
+module.exports = {
+  create,
+  getAll,
+  getOne,
+  update,
+  deleteQuiz,
+  getQuiz,
+  getTopics,
+};

@@ -3,11 +3,30 @@ const asyncHandler = require("express-async-handler");
 const contactService = require("./contactUsService");
 const sendResponse = require("../../utils/sendResponse");
 const responseStatusCodes = require("../../utils/responseStatusCode");
+const notificationService = require("../notification/notificationService");
+const sendPushNotification = require("../../utils/firebase_service");
 
 const create = asyncHandler(async (req, res) => {
   req.body.user = req.user._id;
   console.log("req.user", req.user);
   const contact = await contactService.addNew(req.body);
+  await notificationService.addNew(
+    "Contact Us Request Submitted!", // Updated title
+    `Your request has been successfully submitted. Our team will get back to you shortly.`, // Updated message
+    "contactus", // Changed to reflect the context
+    req.user.id,
+    contact?._id
+  );
+  if (req.user.fcmToken) {
+    await sendPushNotification(
+      req.user.fcmToken,
+      "Contact Us Request Submitted!", // Updated title
+      `Your request has been successfully submitted. Our team will get back to you shortly.`, // Updated message
+      {
+        id: contact?._id.toString(),
+      }
+    );
+  }
   return sendResponse(
     res,
     responseStatusCodes.CREATED,

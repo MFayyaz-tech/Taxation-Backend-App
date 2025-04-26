@@ -11,6 +11,7 @@ const authValidator = {
     password: Joi.string().required(),
     fcmToken: Joi.string().optional(),
     country: Joi.string().optional(),
+    device_id: Joi.string().optional(),
   }),
   requestOtp: Joi.object({
     email: Joi.string().required(),

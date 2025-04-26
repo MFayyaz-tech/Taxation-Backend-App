@@ -1,0 +1,32 @@
+name: Deploy Node.js App
+
+on:
+  push:
+    branches:
+      - main  # Adjust if you use another branch for deployment
+
+jobs:
+  deploy:
+    runs-on: self-hosted  # Uses your GitHub Actions Runner
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Pull latest changes
+        run: |
+          git fetch --all
+          git reset --hard origin/main
+          git pull origin main --force
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Restart application using PM2 with sudo
+        run: |
+          if sudo pm2 list | grep -q "taxation-app"; then
+            sudo pm2 restart taxation-app
+          else
+            sudo pm2 start src/server.js --name "taxation-app"
+          fi
+          sudo pm2 save
