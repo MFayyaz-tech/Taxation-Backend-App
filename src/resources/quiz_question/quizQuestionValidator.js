@@ -9,6 +9,7 @@ const quizQuestionValidator = {
     optionC: Joi.string().required(),
     optionD: Joi.string().required(),
     answer: Joi.string().required(),
+    country: Joi.string().optional(),
   }),
   update: Joi.object({
     question: Joi.string().optional(),
@@ -19,6 +20,7 @@ const quizQuestionValidator = {
     optionC: Joi.string().optional(),
     optionD: Joi.string().optional(),
     answer: Joi.string().optional(),
+    country: Joi.string().optional(),
   }),
 };
 module.exports = quizQuestionValidator;
