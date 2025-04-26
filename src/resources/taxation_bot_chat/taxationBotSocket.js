@@ -3,6 +3,7 @@ const taxationBotChatModel = require("./taxationBotChatModel");
 const axios = require("axios");
 const taxationKeyWordsModel = require("./taxationKeyWordsModel");
 const userService = require("../user/userService");
+const qs = require("qs");
 
 const taxationBotSocket = async (socket, io) => {
   socket.on(socketListener.BOTCHAT, async (data, callback) => {
@@ -80,16 +81,29 @@ const taxationBotSocket = async (socket, io) => {
       // // Perform the API request to get the search result
       // const response = await axios.request(options);
       const response = await axios.post(
-        `http://82.25.105.2:8000/taxationbot`,
-        null,
-        {
-          params: {
-            user_id: userDetails?._id,
-            message: promptLower,
-            country: userDetails?.country,
-          },
-        }
+        "http://82.25.105.2:8000/taxationbot",
+        qs.stringify({
+          user_id: userDetails?._id.toString(),
+          message: promptLower,
+          country: userDetails?.country,
+        }),
+        { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
       );
+      //   axios.post(
+      //   `http://82.25.105.2:8000/taxationbot`,
+      //   null,
+      //   {
+      //     headers: {
+      //       accept: "application/json",
+      //       "Content-Type": "application/x-www-form-urlencoded",
+      //     },
+      //     params: {
+      //       user_id: userDetails?._id.toString(),
+      //       message: promptLower,
+      //       country: userDetails?.country,
+      //     },
+      //   }
+      // );
       console.log("response", response);
 
       // You can customize what data you want from the API response
