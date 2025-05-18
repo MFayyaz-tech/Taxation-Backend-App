@@ -56,6 +56,10 @@ const userSchema = new mongoose.Schema(
       default: "active",
       enum: ["active", "blocked"],
     },
+    login: {
+      type: Boolean,
+      default: false,
+    },
     country: {
       type: String,
     },
