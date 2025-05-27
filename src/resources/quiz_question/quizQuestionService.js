@@ -116,7 +116,7 @@ const quizQuestionService = {
         america: "unitedstates",
         unitedstatesofamerica: "unitedstates",
 
-        uk: "unitedkingdom",
+        uk: "UK",
         gb: "unitedkingdom",
         greatbritain: "unitedkingdom",
         britain: "unitedkingdom",
@@ -288,18 +288,25 @@ const quizQuestionService = {
       lastTwoAttempts?.flatMap((attempt) =>
         attempt.attempts.map((q) => q.question)
       ) || [];
-
+    console.log("excludedQuestionIds", excludedQuestionIds);
     // Fetch all questions first (we'll filter manually)
-    let allQuestions = await quizQuestionModel.find({
-      _id: { $nin: excludedQuestionIds },
-    });
-
+    let allQuestions = await quizQuestionModel
+      .find({
+        _id: { $nin: excludedQuestionIds },
+        country: { $ne: "Pakistan" },
+        // country: userDetails.country,
+      })
+      .limit(50);
+    console.log("allQuestions", allQuestions);
     // Normalize each question's country and filter
     const filteredQuestions = allQuestions.filter((q) => {
       const questionCountry = normalizeCountry(q.country);
+      // console.log("questionCountry", questionCountry);
+      // console.log("normalizedUserCountry", normalizedUserCountry);
+
       return questionCountry === normalizedUserCountry;
     });
-
+    console.log("filteredQuestions", filteredQuestions.length);
     // Shuffle questions randomly
     const shuffleArray = (array) => array.sort(() => Math.random() - 0.5);
     let quizQuestions = shuffleArray(filteredQuestions).slice(0, 20);
@@ -324,6 +331,7 @@ const quizQuestionService = {
 
       quizQuestions = quizQuestions.concat(extraQuestions);
     }
+    console.log("quizQuestions", quizQuestions.length);
 
     return quizQuestions;
   },
