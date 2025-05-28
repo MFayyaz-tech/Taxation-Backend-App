@@ -1,5 +1,7 @@
 const { default: axios } = require("axios");
 const chatModel = require("./taxationBotChatModel");
+const taxationBotChatModel = require("./taxationBotChatModel");
+const { default: mongoose } = require("mongoose");
 const taxationBotChatService = {
   getChat: async (sender, receiver, room) => {
     let isNew = false;
@@ -95,12 +97,33 @@ const taxationBotChatService = {
   },
 
   userChats: async (userId) => {
-    const result = await chatModel
-      .find({ $or: [{ sender: userId }, { receiver: userId }] })
-      .populate({ path: "user1", select: "firstName lastName" })
-      .populate({ path: "user2", select: "firstName lastName" })
-      .lean();
-    return result;
+    const results = await taxationBotChatModel.aggregate([
+      { $match: { user: new mongoose.Types.ObjectId(userId) } },
+
+      // Sort first so $first gives latest message per session
+      { $sort: { timestamp: -1 } },
+
+      // Group by session and pick the first (latest) message
+      {
+        $group: {
+          _id: "$session",
+          title: { $first: "$title" },
+          request: { $first: "$request" },
+          response: { $first: "$response" },
+          timestamp: { $first: "$timestamp" },
+          refrence: { $first: "$refrence" },
+        },
+      },
+
+      // Optional: sort sessions by latest message time
+      { $sort: { timestamp: -1 } },
+    ]);
+    // const result = await chatModel
+    //   .find({ $or: [{ sender: userId }, { receiver: userId }] })
+    //   .populate({ path: "user1", select: "firstName lastName" })
+    //   .populate({ path: "user2", select: "firstName lastName" })
+    //   .lean();
+    return results;
   },
 };
 module.exports = taxationBotChatService;

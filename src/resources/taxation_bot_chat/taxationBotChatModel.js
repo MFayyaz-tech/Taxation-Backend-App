@@ -7,6 +7,7 @@ const chatSchema = new mongoose.Schema({
     ref: "User",
   },
   session: String,
+  title: String,
   request: String,
   response: String,
   refrence: String,

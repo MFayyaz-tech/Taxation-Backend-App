@@ -7,6 +7,7 @@ const {
 } = require("../../middleware/authentication.middleware");
 const taxationBotChatRouter = express.Router();
 // Routes
+taxationBotChatRouter.route("/").get(authUser, controller.getAll);
 taxationBotChatRouter.route("/").get(controller.create);
 // .get(authUser, controller.getAll);
 //taxationBotChatRouter.route("/:id").get(authUser, controller.getOne);

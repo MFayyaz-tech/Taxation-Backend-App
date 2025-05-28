@@ -3,6 +3,7 @@ const taxationBotChatService = require("./taxationBotChatService");
 const sendResponse = require("../../utils/sendResponse");
 const responseStatusCodes = require("../../utils/responseStatusCode");
 const taxationKeyWordsModel = require("./taxationKeyWordsModel");
+const expressAsyncHandler = require("express-async-handler");
 
 //* Create chat
 const create = asyncHandler(async (req, res) => {
@@ -46,21 +47,14 @@ const create = asyncHandler(async (req, res) => {
   );
 });
 
-//* Get all notifications
-const getAll = asyncHandler(async (req, res) => {
-  const { user, type, page, limit } = req.query;
-  const notifications = await taxationBotChatService.getAll(
-    user || req.user._id,
-    type,
-    page,
-    limit
-  );
+const getAll = expressAsyncHandler(async (req, res) => {
+  const chats = await taxationBotChatService.userChats(req.user.id);
   return sendResponse(
     res,
     responseStatusCodes.OK,
-    "Notifications Retrieved",
+    "Chats Retrieved",
     true,
-    notifications,
+    chats,
     null
   );
 });
